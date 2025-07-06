@@ -1,7 +1,20 @@
 'use client';
+import { useState, useEffect } from 'react';
 import Share from './components/share';
 
+interface QuoteData {
+    date: string;
+    title: string;
+    quote: string;
+    author: string;
+    text: string;
+}
+
 export default function Home() {
+
+  const [quoteData, setQuoteData] = useState<QuoteData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Get current date and format it
   const today = new Date();
@@ -12,32 +25,53 @@ export default function Home() {
   };
   const formattedDate = today.toLocaleDateString('en-US', options);
 
-  // Quote data for sharing
-  const quoteData = {
-    date: formattedDate,
-    title: "Show me how to live",
-    quote: "Protect your own good in all that you do, and as concerns everything else take what is given as far as you can make reasoned use of it. If you don't, you'll be unlucky, prone to failure, hindered and stymied.",
-    author: "EPICTETUS, DISCOURSES, 4.3.11"
-  };
+  useEffect(() => {
+    const fetchQuote = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:3000/daily-quote');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setQuoteData({ ...data, date: formattedDate });
+      } catch (e) {
+        if (e instanceof Error) {
+            setError(e.message);
+        } else {
+            setError('An unknown error occurred while fetching the quote.');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuote();
+  }, [formattedDate]);
 
   return (
-    <main className="min-h-screen flex mt-4 justify-center p-8">
+    <main className="flex mt-4 justify-center p-4">
       <div className="max-w-5xl mx-auto text-center">
         {/* Header */}
-        <h1 className="text-4xl md:text-8xl font-mf-consent mb-6 border-b-2 border-white text-base-content">Reminder of the day</h1>
-        <p className="md:text-lg text-sm text-white mb-4">{formattedDate}</p>
-        <h1 className="md:text-3xl text-lg mb-6 text-base-content">{quoteData.title}</h1>
-        <p className="md:text-lg text-sm text-white mb-6">
-          {quoteData.quote}
-        </p>
-        <p className="md:text-sm text-xs text-base-content mb-6 italic">
-          - {quoteData.author}
-        </p>
-        <p className="md:text-2xl text-sm text-white">
-          <span className="font-mf-consent text-6xl items-center text-base-content">T</span>he goodness inside you is like a small flame, and you are its keeper. It's your job, today and every day, to make sure that it has enough fuel, that it doesn't get obstructed or snuffed out. Every person has their own version of the flame and is responsible for it, just as you are. If they all fail, the world will be much darker—that is something you don't control. But so long as your flame flickers, there will be some light in the world.
-        </p>
-        {/* Share Component */}
-        <Share data={quoteData}/>
+        <h1 className="text-4xl md:text-6xl font-mf-consent pb-2 border-b border-white text-base-content">Reminder of the day</h1>
+        <p className="md:text-lg text-sm text-white my-4">{formattedDate}</p>
+        {loading && <p className="text-white">Loading today&apos;s quote...</p>}
+        {error && <p className="text-red-500">Error: {error}</p>}
+        {quoteData && (
+          <>
+            <h1 className="md:text-2xl font-bold text-sm text-base-content">{quoteData.title}</h1>
+            <p className="md:text-lg text-sm text-white my-4">
+              {quoteData.quote}
+            </p>
+            <p className="text-sm font-bold text-base-content italic">
+              - {quoteData.author}
+            </p>
+            <p className="md:text-lg text-sm text-white my-4">
+              <span className="font-mf-consent text-6xl items-center text-base-content">T</span>{quoteData.text.substring(1)}
+            </p>
+            {/* Share Component */}
+            <Share data={quoteData}/>
+          </>
+        )}
       </div>
     </main>
   );
