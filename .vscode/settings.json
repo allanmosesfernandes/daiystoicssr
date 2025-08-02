@@ -1,9 +1,5 @@
 {
     "workbench.colorCustomizations": {
-        "tree.indentGuidesStroke": "#ff0000",
-        "titleBar.activeBackground": "#eccf3f",
-        "titleBar.activeForeground": "#ffffff",
-        "titleBar.inactiveBackground": "#2c2c32",
-        "titleBar.inactiveForeground": "#cccccc"
+        "tree.indentGuidesStroke": "#ff0000"
     }
 }
